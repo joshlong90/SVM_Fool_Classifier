@@ -1,4 +1,6 @@
 import numpy as np
+import time
+from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
@@ -90,6 +92,8 @@ def fool_classifier(test_data): ## Please do not change the function defination.
     
 ########################################################################################################
 
+    start_time = time.time()
+
     feature_names = count_vect.get_feature_names()
     feature_names = np.array(feature_names)
 
@@ -104,31 +108,32 @@ def fool_classifier(test_data): ## Please do not change the function defination.
     # WORD_INDICIES maps each word in word_vector to it's index position in terms of overall prominence.
     word_indicies, word_vector, boolean_vector = initialise_fool_vector(word_class0, word_class1)
 
-    # mark the presence of whether a word appears in a document.
+    total_added = 0
+    total_removed = 0
+    added_counts = Counter()
+    removed_counts = Counter()
+
     for line in data:
-        wordset = set(line)
-        word_present = [False] * len(word_vector)
-        for word in wordset:
-            if word in word_class0 or word in word_class1:
-                word_present[word_indicies[word]] = True
+        # mark the presence of whether a word appears in a document.
+        present_words = set()
+        for word in set(line):
+            if word in word_indicies:
+                present_words.add(word_indicies[word])
 
         count = 0
         index = 0
         add_words = []
-        remove_words = []
+        remove_words = set()
         while index < len(word_vector) and count < 20:
-
             # case where word points to class0
             if boolean_vector[index]:
-                if not word_present[index]:
+                if not index in present_words:
                     add_words.append(word_vector[index])
                     count += 1
-
             # case where word points to class0
-            else:
-                if word_present[index]:
-                    remove_words.append(word_vector[index])
-                    count += 1
+            elif index in present_words:
+                remove_words.add(word_vector[index])
+                count += 1
 
             index += 1
 
@@ -138,6 +143,26 @@ def fool_classifier(test_data): ## Please do not change the function defination.
                 line[i] = filler_word
         for word in add_words:
             line.append(word)
+        # Record statistics
+        total_added += len(add_words)
+        total_removed += len(remove_words)
+        for word in add_words:
+            added_counts[word] += 1
+        for word in remove_words:
+            removed_counts[word] += 1
+
+    elapsed_time = time.time() - start_time
+    print('Replacement algorithm took {} seconds.'.format(elapsed_time))
+    print()
+    print('Added a total of {} words and removed a total of {} words.'.format(total_added, total_removed))
+    print()
+    print('Total number of additions per word:')
+    for word, count in added_counts.most_common():
+        print('{0:<20} {1:>4}'.format(word, count))
+    print()
+    print('Total number of removals per word:')
+    for word, count in removed_counts.most_common():
+        print('{0:<20} {1:>4}'.format(word, count))
 
 ########################################################################################################
 

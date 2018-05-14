@@ -1,8 +1,12 @@
 import numpy as np
+import time
+from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 
 import helper
+
+import matplotlib.pyplot as plt
 
 def load_training_data(label):
     lines = []
@@ -12,27 +16,43 @@ def load_training_data(label):
             lines.append(line.strip())
     return lines, [label] * len(lines)
 
+########################################################################################################
 
-def construct_replace_list(classifier, feature_names):
+def initialise_fool_vector(word_class0, word_class1):
+    fool_vector = []
+    for word in word_class0:
+        fool_vector.append([abs(word_class0[word]), word, True])
+    for word in word_class1:
+        fool_vector.append([abs(word_class1[word]), word, False])
+    fool_vector.sort(reverse=True)
+    word_vector = [word[1] for word in fool_vector]
+    boolean_vector = [word[2] for word in fool_vector]
+    word_indicies = {}
+    for index in range(len(word_vector)):
+    	word_indicies[word_vector[index]] = index
+    return word_indicies, word_vector, boolean_vector
+
+def capture_word_dictionary(coef, feature_names, top_class_features, label):
+    word_dict = {}
+    for feature in top_class_features:
+        word_dict[feature_names[feature]] = coef[feature]
+    return word_dict
+
+def determine_prominent_words(classifier, top_class0_features=20):
     coef = classifier.coef_.toarray().ravel()
-#    coef = classifier.dual_coef_.toarray().ravel()
+    sorted_coef = np.argsort(coef)
 
-    indices = np.argsort(coef)
-    to_replace = {}
-    replacements = []
-    i = 0
-    j = len(indices) - 1
-    while i < j:
-        class_0_word = indices[i]
-        class_1_word = indices[j]
-#        print(feature_names[class_0_word], feature_names[class_1_word])
-        to_replace[feature_names[class_1_word]] = i
-        replacements.append(feature_names[class_0_word])
-        i += 1
-        j -= 1
+    top_class0 = sorted_coef[:top_class0_features]
+    weakest_class0 = coef[top_class0[-1]]
 
-    return to_replace, replacements
+    top_class1_features = 1
+    while coef[sorted_coef[-(top_class1_features+1)]] > abs(weakest_class0):
+        top_class1_features += 1
 
+    top_class1 = sorted_coef[-top_class1_features:]
+    return coef, top_class0, top_class1
+
+########################################################################################################
 
 def fool_classifier(test_data): ## Please do not change the function defination...
     ## Read the test data file, i.e., 'test_data.txt' from Present Working Directory...
@@ -69,38 +89,82 @@ def fool_classifier(test_data): ## Please do not change the function defination.
 
     parameters = { 'gamma' : 'auto', 'C' : 1.0, 'kernel' : 'linear', 'degree' : 2, 'coef0' : 0 }
     classifier = strategy_instance.train_svm(parameters, training_idf, training_labels)
+    
+########################################################################################################
 
-    to_replace, replacements = construct_replace_list(classifier, count_vect.get_feature_names())
+    start_time = time.time()
+
+    feature_names = count_vect.get_feature_names()
+    feature_names = np.array(feature_names)
+
+    coef, top_class0, top_class1 = determine_prominent_words(classifier, 60)
+
+    word_class0 = capture_word_dictionary(coef, feature_names, top_class0, 0)
+    word_class1 = capture_word_dictionary(coef, feature_names, top_class1, 1)
+    
+    # WORD_VECTOR contains a list of the most prominent words in terms of absolute coef value.
+    # BOOLEAN_VECTOR contains a list of boolean values depicting whether the corresponding word \
+    # in word_vector points to class0.
+    # WORD_INDICIES maps each word in word_vector to it's index position in terms of overall prominence.
+    word_indicies, word_vector, boolean_vector = initialise_fool_vector(word_class0, word_class1)
+
+    total_added = 0
+    total_removed = 0
+    added_counts = Counter()
+    removed_counts = Counter()
 
     for line in data:
-        wordset = set(line)
-        word_importances = []
-        for word in wordset:
-            if word in to_replace:
-                word_importances.append((to_replace[word], word))
-
-        word_importances.sort()
-        substitutions = {}
+        # mark the presence of whether a word appears in a document.
+        present_words = set()
+        for word in set(line):
+            if word in word_indicies:
+                present_words.add(word_indicies[word])
 
         count = 0
-        ri = 0
-        for w in word_importances:
-            word = w[1]
-            # Don't use a replacement word that's already in the text.
-            while replacements[ri] in wordset:
-                ri += 1
-            substitutions[word] = replacements[ri]
-            count += 1
-            if count == 10:
-                break
-            ri += 1
+        index = 0
+        add_words = []
+        remove_words = set()
+        while index < len(word_vector) and count < 20:
+            # case where word points to class0
+            if boolean_vector[index]:
+                if not index in present_words:
+                    add_words.append(word_vector[index])
+                    count += 1
+            # case where word points to class0
+            elif index in present_words:
+                remove_words.add(word_vector[index])
+                count += 1
 
-#        print('Substitutions:', substitutions)
+            index += 1
+
+        filler_word = add_words[0]
         for i in range(len(line)):
-            if line[i] in substitutions:
-#                print('Changing {} to {}'.format(line[i], substitutions[line[i]]))
-                line[i] = substitutions[line[i]]
+            if line[i] in remove_words:
+                line[i] = filler_word
+        for word in add_words:
+            line.append(word)
+        # Record statistics
+        total_added += len(add_words)
+        total_removed += len(remove_words)
+        for word in add_words:
+            added_counts[word] += 1
+        for word in remove_words:
+            removed_counts[word] += 1
 
+    elapsed_time = time.time() - start_time
+    print('Replacement algorithm took {} seconds.'.format(elapsed_time))
+    print()
+    print('Added a total of {} words and removed a total of {} words.'.format(total_added, total_removed))
+    print()
+    print('Total number of additions per word:')
+    for word, count in added_counts.most_common():
+        print('{0:<20} {1:>4}'.format(word, count))
+    print()
+    print('Total number of removals per word:')
+    for word, count in removed_counts.most_common():
+        print('{0:<20} {1:>4}'.format(word, count))
+
+########################################################################################################
 
     ## Write out the modified file, i.e., 'modified_data.txt' in Present Working Directory...
     modified_data='./modified_data.txt'

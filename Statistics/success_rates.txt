@@ -1,0 +1,42 @@
+total			add			remove			success rate / 200
+0				0			0				2
+1				1			0				2
+1				combination 				4
+2				2			0				5
+2				1			1				7
+2				combination 				7
+3				3			0				9
+3				combination 				11
+4				4			0				12
+4				2			2				13
+4				combination 				13
+5				5			0				18
+5				combination 				21
+6				6			0				33
+6				3			3				32
+6				combination 				34
+7				7			0				42
+7				combination 				43
+8				8			0				59
+8				4			4				60
+8				combination 				73
+9				9			0				90
+9				combination 				104
+10				10			0				118
+10				5			5				110
+10				combination 				132
+11				11			0				161
+11				combination 				158
+12				12			0				189
+12				6			6				162
+12				combination 				171
+13				13			0				194
+13				combination 				182
+14				14			0				198
+14				7			7				195
+14				combination 				188
+15				15			0				200
+15				combination 				192
+16				8			8				188
+18				9			9				197
+20				10			10				199

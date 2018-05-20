@@ -6,7 +6,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 import helper
 
-import matplotlib.pyplot as plt
+print_stats = False
 
 def load_training_data(label):
     lines = []
@@ -151,18 +151,19 @@ def fool_classifier(test_data): ## Please do not change the function defination.
         for word in remove_words:
             removed_counts[word] += 1
 
-    elapsed_time = time.time() - start_time
-    print('Replacement algorithm took {} seconds.'.format(elapsed_time))
-    print()
-    print('Added a total of {} words and removed a total of {} words.'.format(total_added, total_removed))
-    print()
-    print('Total number of additions per word:')
-    for word, count in added_counts.most_common():
-        print('{0:<20} {1:>4}'.format(word, count))
-    print()
-    print('Total number of removals per word:')
-    for word, count in removed_counts.most_common():
-        print('{0:<20} {1:>4}'.format(word, count))
+    if print_stats:
+        elapsed_time = time.time() - start_time
+        print('Replacement algorithm took {} seconds.'.format(elapsed_time))
+        print()
+        print('Added a total of {} words and removed a total of {} words.'.format(total_added, total_removed))
+        print()
+        print('Total number of additions per word:')
+        for word, count in added_counts.most_common():
+            print('{0:<20} {1:>4}'.format(word, count))
+        print()
+        print('Total number of removals per word:')
+        for word, count in removed_counts.most_common():
+            print('{0:<20} {1:>4}'.format(word, count))
 
 ########################################################################################################
 

@@ -5,10 +5,13 @@ from sklearn.feature_extraction.text import TfidfTransformer
 import numpy as np
 
 ################################################################################################
-import submission_2 as submission
+import submission as submission
 ################################################################################################
 
 import matplotlib.pyplot as plt
+
+overfit = True
+polynomial = False
 
 def train_our_svm(parameters, x_train, y_train):
     ## Populate the parameters...
@@ -20,7 +23,6 @@ def train_our_svm(parameters, x_train, y_train):
 
     ## Train the classifier...
     clf = svm.SVC(kernel=kernel, C=C, gamma=gamma, degree=degree, coef0=coef0)
-#    clf = svm.LinearSVC()
     clf.fit(x_train, y_train)
     return clf
 
@@ -30,9 +32,9 @@ def load_training_data(filenames, label):
         with open(filename, 'r') as file:
             for line in file:
                 lines.append(line.strip())
-    return lines, [label] * len(lines)
+    return lines
 
-def classify_examples(examples, real_class, count_vect, tfidf_transformer, classifier):
+def classify_examples(filename, examples, real_class, count_vect, tfidf_transformer, classifier):
     counts = count_vect.transform(examples)
     tfidf = tfidf_transformer.transform(counts)
 #    print(tfidf.shape)
@@ -41,14 +43,14 @@ def classify_examples(examples, real_class, count_vect, tfidf_transformer, class
     for predicted_class in predictions:
         if predicted_class == real_class:
             correct += 1
+    print('Correctly classified {} out of {} class {} examples ({}%) in {}.'.format(
+        correct, len(examples), real_class, round(100 * correct / len(examples), 1), filename))
     return correct
 
 def classify_file(filename, real_class, count_vect, tfidf_transformer, classifier):
     with open(filename, 'r') as file:
         examples = [line.strip() for line in file]
-    correct = classify_examples(examples, real_class, count_vect, tfidf_transformer, classifier)
-    print('Correctly classified {} out of {} class {} examples ({}%) in {}.'.format(
-        correct, len(examples), real_class, round(100 * correct / len(examples), 1), filename))
+    correct = classify_examples(filename, examples, real_class, count_vect, tfidf_transformer, classifier)
 
 def plot_coefficients(classifier, feature_names, top_features=20):
     coef = classifier.coef_.toarray().ravel()
@@ -65,13 +67,22 @@ def plot_coefficients(classifier, feature_names, top_features=20):
     plt.xticks(np.arange(1, 1 + 2 * top_features), feature_names[top_coefficients], rotation=60, ha='right')
     plt.show()
 
-# Deliberately train an over-fitted classifier
-
-class0train, class0labels = load_training_data(['class-0.txt'], 0)
-class1train, class1labels = load_training_data(['class-1.txt', 'test_data.txt'], 1)
+if overfit:
+    # Deliberately train an over-fitted classifier by training on the test data too.
+    class0train = load_training_data(['class-0.txt'], 0)
+    class0test = class0train
+    class1train = load_training_data(['class-1.txt', 'test_data.txt'], 1)
+    print('Overfitting classifier.')
+else:
+    with open('class-0.txt','r') as class0file:
+        class0 = [line.strip() for line in class0file]
+        class0train = class0[0:180]
+        class0test = class0[180:]
+    class1train = load_training_data(['class-1.txt'], 1)
+    print('Not overfitting classifier.')
 
 training_data = class0train + class1train
-training_labels = class0labels + class1labels
+training_labels = [0] * len(class0train) + [1] * len(class1train)
 
 count_vect = CountVectorizer().fit(training_data)
 
@@ -85,13 +96,16 @@ training_idf = tfidf_transformer.transform(training_counts)
 #print(training_idf.shape)
 #print(type(training_idf))
 
-parameters = { 'gamma' : 'auto', 'C' : 1.0, 'kernel' : 'linear', 'degree' : 2, 'coef0' : 0 }
+if polynomial:
+    parameters = { 'gamma' : 0.0001220703125, 'C' : 32, 'kernel' : 'poly', 'degree' : 2, 'coef0' : 1000 }
+else:
+    parameters = { 'gamma' : 'auto', 'C' : 1.0, 'kernel' : 'linear', 'degree' : 2, 'coef0' : 0 }
 
 clf = train_our_svm(parameters, training_idf, training_labels)
 
 #print(clf)
 
-classify_file('class-0.txt', 0, count_vect, tfidf_transformer, clf)
+classify_examples('class-0.txt', class0test, 0, count_vect, tfidf_transformer, clf)
 
 classify_file('test_data.txt', 1, count_vect, tfidf_transformer, clf)
 
@@ -99,4 +113,5 @@ submission.fool_classifier('test_data.txt')
 
 classify_file('modified_data.txt', 1, count_vect, tfidf_transformer, clf)
 
-plot_coefficients(clf, count_vect.get_feature_names(), 40)
+if not polynomial:
+    plot_coefficients(clf, count_vect.get_feature_names(), 40)

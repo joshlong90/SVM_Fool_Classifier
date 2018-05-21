@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
 ################################################################################################
-import submission_binary as submission
+import submission as submission
 ################################################################################################
 
 import matplotlib.pyplot as plt

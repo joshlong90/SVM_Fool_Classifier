@@ -4,16 +4,12 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 import helper
 
+def Concatenate(data):
+    return [ ' '.join(item) for item in data ]
+
+
 def SimpleTokenize(s):
     return s.split(' ')
-
-def load_training_data(label):
-    lines = []
-    filename = 'class-{}.txt'.format(label)
-    with open(filename, 'r') as file:
-        for line in file:
-            lines.append(line.strip())
-    return lines, [label] * len(lines)
 
 
 def construct_replace_list(classifier, feature_names):
@@ -74,10 +70,10 @@ def fool_classifier(test_data): ## Please do not change the function defination.
     #
     ##..................................#
 
-    class0train, class0labels = load_training_data(0)
-    class1train, class1labels = load_training_data(1)
-    training_data = class0train + class1train
-    training_labels = class0labels + class1labels
+    # It seems silly to have to concatenate the data that's just been split, but there doesn't
+    # seem to be a way to pass tokens to CountVectorizer. It requires the examples to be strings.
+    training_data = Concatenate(strategy_instance.class0) + Concatenate(strategy_instance.class1)
+    training_labels = [0] * len(strategy_instance.class0) + [1] *  len(strategy_instance.class1)
 
     count_vect = CountVectorizer(tokenizer=SimpleTokenize).fit(training_data)
     training_counts = count_vect.transform(training_data)

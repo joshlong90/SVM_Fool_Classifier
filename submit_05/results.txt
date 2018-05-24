@@ -1,0 +1,1 @@
+modified_data.txt|submission.py 	2018-05-24 17:39:10 	Success = 78.500 % (Plz make sure that you do not use test data for inference)

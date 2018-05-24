@@ -4,6 +4,9 @@ from sklearn.feature_extraction.text import TfidfTransformer
 
 import helper
 
+def SimpleTokenize(s):
+    return s.split(' ')
+
 def load_training_data(label):
     lines = []
     filename = 'class-{}.txt'.format(label)
@@ -76,9 +79,8 @@ def fool_classifier(test_data): ## Please do not change the function defination.
     training_data = class0train + class1train
     training_labels = class0labels + class1labels
 
-    count_vect = CountVectorizer().fit(training_data)
+    count_vect = CountVectorizer(tokenizer=SimpleTokenize).fit(training_data)
     training_counts = count_vect.transform(training_data)
-#    print(training_counts.shape)
     tfidf_transformer = TfidfTransformer()
     training_idf = tfidf_transformer.fit_transform(training_counts)
 

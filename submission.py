@@ -85,26 +85,22 @@ def fool_classifier(test_data): ## Please do not change the function defination.
 
     to_replace, replacements = construct_replace_list(classifier, count_vect.get_feature_names())
 
-    tokens = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
-
     for lineNo in range(len(data)):
         line = data[lineNo]
         wordset = set(line)
         word_importances = []
         for word in wordset:
-            if word in to_replace and word not in tokens:
+            if word in to_replace:
                 word_importances.append((to_replace[word], word))
 
-
-        # Remove the 20 words that most strongly indicate class 1.
+        # Remove the 18 words that most strongly indicate class 1.
         word_importances.sort()
-        to_remove = set([ wi[1] for wi in word_importances[:20] ])
-        
+        to_remove = set([ wi[1] for wi in word_importances[:18] ])
         new_line = []
         for i in range(len(line)):
             if line[i] not in to_remove:
                 new_line.append(line[i])
-        # If we couldn't find 20 words to remove then add some words.
+        # Add words until the total number of changes is 20.
         if len(to_remove) < 20:
             to_add = []
             ri = 0

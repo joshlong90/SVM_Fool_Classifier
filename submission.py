@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfTransformer
 
 import helper
 
@@ -14,21 +15,27 @@ def load_training_data(label):
 
 def construct_replace_list(classifier, feature_names):
     coef = classifier.coef_.toarray().ravel()
-#    coef = classifier.dual_coef_.toarray().ravel()
-
     indices = np.argsort(coef)
     to_replace = {}
     replacements = []
-    i = 0
-    j = len(indices) - 1
-    while i < j:
-        class_0_word = indices[i]
-        class_1_word = indices[j]
-#        print(feature_names[class_0_word], feature_names[class_1_word])
-        to_replace[feature_names[class_1_word]] = i
-        replacements.append(feature_names[class_0_word])
-        i += 1
-        j -= 1
+
+    # A negative coefficient means that the word indicates class 0.  Put all the words with
+    # non-positive coefficients in the 'replacements' list, in ascending order of the
+    # coefficient. This corresponds to descending order of importance, i.e. the earlier a
+    # word is in the list, the more strongly it suggests class 0.
+    for i in range(len(indices)):
+        word_index = indices[i]
+        if coef[word_index] > 0:
+            break
+        replacements.append(feature_names[word_index])
+    # A positive coefficient means that the word indicates class 1. The 'to_replace' dictionary
+    # maps all the class 1 words to their coefficients. It is used to decide which words to
+    # remove or replace in each example.
+    for j in range(len(indices) -1, -1, -1):
+        word_index = indices[j]
+        if coef[word_index] <= 0:
+            break
+        to_replace[feature_names[word_index]] = i
 
     return to_replace, replacements
 
@@ -60,43 +67,51 @@ def fool_classifier(test_data): ## Please do not change the function defination.
     training_data = class0train + class1train
     training_labels = class0labels + class1labels
 
-    tfidf_vectorizer = TfidfVectorizer(binary=True)
-    training_idf = tfidf_vectorizer.fit_transform(training_data)
+    count_vect = CountVectorizer(binary=True).fit(training_data)
+    training_counts = count_vect.transform(training_data)
+#    print(training_counts.shape)
+#    tfidf_transformer = TfidfTransformer()
+#    training_idf = tfidf_transformer.fit_transform(training_counts)
 
     parameters = { 'gamma' : 'auto', 'C' : 1.0, 'kernel' : 'linear', 'degree' : 2, 'coef0' : 0 }
-    classifier = strategy_instance.train_svm(parameters, training_idf, training_labels)
+    classifier = strategy_instance.train_svm(parameters, training_counts, training_labels)
 
-    to_replace, replacements = construct_replace_list(classifier, tfidf_vectorizer.get_feature_names())
+    to_replace, replacements = construct_replace_list(classifier, count_vect.get_feature_names())
 
-    for line in data:
+    for lineNo in range(len(data)):
+        line = data[lineNo]
         wordset = set(line)
         word_importances = []
         for word in wordset:
             if word in to_replace:
                 word_importances.append((to_replace[word], word))
 
+        # Remove the 20 words that most strongly indicate class 1.
         word_importances.sort()
-        substitutions = {}
+        to_remove = set(wi[1] for wi in word_importances[-20:])
 
-        count = 0
-        ri = 0
-        for w in word_importances:
-            word = w[1]
-            # Don't use a replacement word that's already in the text.
-            while replacements[ri] in wordset:
-                ri += 1
-            substitutions[word] = replacements[ri]
-            count += 1
-            if count == 10:
-                break
-            ri += 1
-
-#        print('Substitutions:', substitutions)
+#        print('To Remove:', to_remove)
+        
+        new_line = []
         for i in range(len(line)):
-            if line[i] in substitutions:
-#                print('Changing {} to {}'.format(line[i], substitutions[line[i]]))
-                line[i] = substitutions[line[i]]
-
+            if line[i] not in to_remove:
+                new_line.append(line[i])
+        # If we couldn't find 20 words to remove then add some words.
+        if len(to_remove) < 20:
+            to_add = []
+            ri = 0
+            add_count = 20 - len(to_remove)
+            while add_count > 0:
+                while replacements[ri] in wordset:
+                    ri += 1
+                to_add.append(replacements[ri])
+                ri += 1
+                add_count -= 1
+            new_line.extend(to_add)
+#            print('Added words:', to_add)
+#        print('Removed words:', to_remove)
+        data[lineNo] = new_line
+#        print(data[lineNo])
 
     ## Write out the modified file, i.e., 'modified_data.txt' in Present Working Directory...
     modified_data='./modified_data.txt'

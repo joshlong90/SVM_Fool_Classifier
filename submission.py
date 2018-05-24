@@ -23,19 +23,28 @@ def construct_replace_list(classifier, feature_names):
     # non-positive coefficients in the 'replacements' list, in ascending order of the
     # coefficient. This corresponds to descending order of importance, i.e. the earlier a
     # word is in the list, the more strongly it suggests class 0.
-    for i in range(len(indices)):
-        word_index = indices[i]
+    for importance in range(len(indices)):
+        word_index = indices[importance]
         if coef[word_index] > 0:
             break
         replacements.append(feature_names[word_index])
     # A positive coefficient means that the word indicates class 1. The 'to_replace' dictionary
     # maps all the class 1 words to their coefficients. It is used to decide which words to
     # remove or replace in each example.
+    importance = 0
     for j in range(len(indices) -1, -1, -1):
         word_index = indices[j]
         if coef[word_index] <= 0:
             break
-        to_replace[feature_names[word_index]] = i
+        to_replace[feature_names[word_index]] = importance
+        importance += 1
+
+##    with open('replacements_4.txt', 'w') as outfile:
+##        for word in replacements:
+##            print(word, file=outfile)
+##    with open('to_replace_4.txt', 'w') as outfile:
+##        for word in to_replace:
+##            print(word, to_replace[word], file=outfile)
 
     return to_replace, replacements
 

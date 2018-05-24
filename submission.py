@@ -89,12 +89,14 @@ def fool_classifier(test_data): ## Please do not change the function defination.
 
     to_replace, replacements = construct_replace_list(classifier, count_vect.get_feature_names())
 
+    tokens = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
+
     for lineNo in range(len(data)):
         line = data[lineNo]
         wordset = set(line)
         word_importances = []
         for word in wordset:
-            if word in to_replace:
+            if word in to_replace and word not in tokens:
                 word_importances.append((to_replace[word], word))
 
 

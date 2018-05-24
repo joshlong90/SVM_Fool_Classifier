@@ -95,11 +95,10 @@ def fool_classifier(test_data): ## Please do not change the function defination.
             if word in to_replace:
                 word_importances.append((to_replace[word], word))
 
+
         # Remove the 20 words that most strongly indicate class 1.
         word_importances.sort()
-        to_remove = set(wi[1] for wi in word_importances[-20:])
-
-#        print('To Remove:', to_remove)
+        to_remove = set([ wi[1] for wi in word_importances[:20] ])
         
         new_line = []
         for i in range(len(line)):

@@ -1,0 +1,24 @@
+
+We first tried to figure out what the two classes represent. To our surprise, they appeared to be indistinguishable to human eyes.
+
+We learned how to implement a SVM classifier using sklearn.
+
+We trained our classifier on half the entries in class-0.txt, and all the entries in class-1.txt. We tested its accuracy using the other half of the data in class-0.txt and all the data in test_data.txt.
+
+The classifier achieved accuracy significantly better than chance (we eventually managed around 70%), showing that there is some statistical difference between the classes, although we could not determine what the classes were.
+
+We learned how to extract weights from the SVM, and use them to determine how strongly each word indicates one class or the other.
+
+Our first idea was to try swapping pairs of words based on the weights. This achieved 48% accuracy on our first attempt.
+
+We next tried adding more words rather than swapping. The theory was that we could choose to add only the most important words. This approach looked promising against our own classifier, but when we submited we only achieved 18% accuracy.
+
+Our next attempt went back to swapping words, but used a TfidfVectorizer with binary=True rather than tfidf. Accuracy was 33.5%
+
+Our fourth attempt made a number of changes. We noticed that the CountVectorizer removed puntuation, e.g. (mr. changed to mr), which we thought muight be detrimental. We learned how to use a custom tokenizer that only removes spaces. Interestingly, this showed that parentheses were one of the most important features for distinguishing the classes. We verified that parentheses are about twice as frequent in class 0 as class 1.
+
+Since adding words had produced poor results, we decided to try only removing words. Our accuracy improved to 92%.
+
+We next tried removing some punctuation, but this caused our success to fall to 78.5%.
+
+We wondered if adding a few words might be better than only removing words. We tried adding 2 words and removing 18, but this caused our accuracy to drop slightly to 91%.

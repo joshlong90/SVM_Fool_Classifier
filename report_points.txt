@@ -1,24 +1,55 @@
+Report
 
-We first tried to figure out what the two classes represent. To our surprise, they appeared to be indistinguishable to human eyes.
+Understanding the data:
+ - We first tried to figure out what the two classes represent. 
+ - To our surprise, they appeared to be indistinguishable to human eyes.
+ - We ran some initial tests to determine the relative frequency of words in each class, the results did not provide any meaningful information to assist us in determining the classes.
+ - At this point we speculated that each class may in fact be slightly different distributions of words that do not fall into any distinguishable categories.
 
-We learned how to implement a SVM classifier using sklearn.
+Training an accurate classifier:
+ - The initial goal was to train an accurate local classifier to be used for information extraction and local testing. 
+ - We learned how to implement a SVM classifier using sklearn.
+ - The first approach was to use CountVectorizer with a linear kernel on it's default settings.
+ - this approach when using the 540 provided training examples proved to not give accuracy any better than chance when tested on the test_data.txt file.
+ - After further research, the discovery of tf-idf (text frequency / inverse document frequency) improved the classifier.
+ - This seemed intuitive at this point as by applying tf-idf we were associating much less value to words such as "the" which appear in every training example.
+ - From this point we did some experimentation to improve our classifier accuracy with different kernels and formed a grid search to find optimal parameters.
+ - Upon finding some very accurate classifiers using "rbf" we decided to split the training data up using only half the entries in class-0.txt, and all the entries in class-1.txt.
+ - The remaining half of class-0.txt was instead reserved for testing along with the original 200 class1 testing examples.
+ - Using test examples from both classes led us to the conclusion that our classifier was in fact heavily bias towards class1.
+ - We continued further grid searches to optimize our classifier while utilizing the same process of reserving half of class-0.txt for testing.
+ - Eventually we found the classifier achieved accuracy significantly better than chance (we eventually managed around 70%), showing that there is statistical difference between the classes, although we could not determine what the classes were.
 
-We trained our classifier on half the entries in class-0.txt, and all the entries in class-1.txt. We tested its accuracy using the other half of the data in class-0.txt and all the data in test_data.txt.
+Extracting information from the classifier:
+ - After we spent some time on optimizing a classifier we decided the easiest way to extract information from the SVM was to use a linear classifier
+ - We achieved this by extracting weights from the linear SVM, and used them to determine how strongly each word indicates one class or the other.
+ - From here we determined 2 lists, one for class0 words and one class1 words which were both sorted in order of their weights.
+ - The initial thought process here was that we could sub in those words that held strong weights in favour of class0 and remove words that held strong weights in favour of class 1.
 
-The classifier achieved accuracy significantly better than chance (we eventually managed around 70%), showing that there is some statistical difference between the classes, although we could not determine what the classes were.
+Submission Attempts:
+ - Our first idea was to try swapping pairs of words based on the weights. 
+ - This had the outcome of essentially removing the 10 most prominent words of class1 (having the highest weights pointing to class1) and adding the 10 most prominent words for class0. 
+ - This achieved 48% accuracy on our first attempt.
 
-We learned how to extract weights from the SVM, and use them to determine how strongly each word indicates one class or the other.
+ - We next decided to sort the class1 and class0 words within one list and sorted according to the absolute value of their weights.
+ - This had the ultimate outcome of adding many more words rather than swapping. 
+ - The theory was to add only the most important words and we would only remove a word if it had a higher value than one of the top 20 class0 words. 
+ - This approach looked promising against our own classifier, but when we submited we only achieved 18% accuracy.
 
-Our first idea was to try swapping pairs of words based on the weights. This achieved 48% accuracy on our first attempt.
+ - Our next attempt went back to swapping words, but used a TfidfVectorizer with binary=True rather than tfidf. 
+ - Accuracy was 33.5%
 
-We next tried adding more words rather than swapping. The theory was that we could choose to add only the most important words. This approach looked promising against our own classifier, but when we submited we only achieved 18% accuracy.
+ - Our fourth attempt made a number of changes. We noticed that the CountVectorizer removed puntuation, e.g. (mr. changed to mr).
+ - Since this particular word contained a high weight in favour of class1 we made adjustments to the code to ensure it was removed. 
+ - We made the modification of using a custom tokenizer that only removes spaces. Interestingly, this showed that parentheses were one of the most important features for distinguishing the classes. We verified that parentheses are about twice as frequent in class 0 as class 1.
+ - From here we revisited the observation that adding more words than removing had produced poor results, we decided to try only removing words. 
+ - Our accuracy improved to 92%.
 
-Our next attempt went back to swapping words, but used a TfidfVectorizer with binary=True rather than tfidf. Accuracy was 33.5%
+ - After this attempt we wanted to verify that removing tokens such as "(", ")", and "," was necessary. 
+ - Our next attempt removed these tokens from being considered for removal.
+ - This caused our success to fall to 78.5%.
 
-Our fourth attempt made a number of changes. We noticed that the CountVectorizer removed puntuation, e.g. (mr. changed to mr), which we thought muight be detrimental. We learned how to use a custom tokenizer that only removes spaces. Interestingly, this showed that parentheses were one of the most important features for distinguishing the classes. We verified that parentheses are about twice as frequent in class 0 as class 1.
-
-Since adding words had produced poor results, we decided to try only removing words. Our accuracy improved to 92%.
-
-We next tried removing some punctuation, but this caused our success to fall to 78.5%.
-
-We wondered if adding a few words might be better than only removing words. We tried adding 2 words and removing 18, but this caused our accuracy to drop slightly to 91%.
+ - From here we wanted to test whether an optimal ratio of removed and added words could be found.
+ - We wondered if adding a few words might be better than only removing words. 
+ - We tried adding 2 words and removing 18. 
+ - This caused our accuracy to drop slightly to 91%.

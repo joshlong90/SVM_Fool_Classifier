@@ -1,0 +1,35 @@
+weill % give cs9318 proj1 submission.py report.pdf
+Session: 18s1
+Student declaration
+-------------------
+* This assignment is my own work, except where permitted by
+  the originality rules for this course and this assignment.
+* This assignment has not been submitted for academic credit
+  elsewhere.
+* I have read and understood the University Rules in respect
+  of Student Academic Misconduct.
+
+Type "yes" to confirm that you agree to the declaration above: yes
+yes
+
+
+Current day and time:	Sat May 26 17:40:16 2018
+Assignment deadline:	Sun May 27 23:59:59 2018
+A submission now would be 1 day and 6 hours early
+
+Type "yes" to continue with the submission: yes
+yes
+Continuing with the submission...
+
+
+Submission: proj1
+------------------------------
+Files found: submission.py report.pdf
+------------------------------
+
+
+Submission datestamp:	Sat May 26 17:40:18 2018
+Assignment deadline:	Sun May 27 23:59:59 2018
+This submission is 1 day and 6 hours early
+Submission accepted. Awesome!
+weill % 

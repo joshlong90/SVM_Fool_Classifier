@@ -193,13 +193,13 @@ After training our local classifier, the next task was to find a way to extract 
 After extracting these feature weights we formed a priority structure that would dictate which modifications our algorithm would choose to make. It made sense to place the features in decreasing order of their absolute weight value. Our most successful implementation did this by dividing the features into two groups, one with negative weights associated with class 0 and the other with positive weights associated with class 1. Highest priority for modifications was given to the features at the beginning of each list which contained the most negative or the most positive weights respectively. Our submissions experimented with slight variations on this concept and are detailed below. \\
 \\
 \textbf{\large Submission 1} \\
-Our first idea to fool the target classifier was simply to substitute the 10 words in each example that most strongly suggest class 1 with the 10 words which most strongly suggest class 0. Our algorithm worked like this:
+Our first idea to fool the target classifier was simply to replace the 10 words in each example that most strongly suggest class 1 with the 10 words which most strongly suggest class 0. Our algorithm worked like this:
 \begin{itemize}
   \item{Train a classifier on the examples in class-0.txt and class-1.txt.}
   \item{Extract the weights that the classifier assigned to each word.}
   \item{Create a list of all the class 0 words, sorted in decreasing order of the absolute value of their weight. i.e. the words that most strongly suggest class 0 are at the start of the list.}
   \item{Create a dictionary mapping each class 1 word to an integer rank. A low rank means high importance, so that when we sort by rank, the most important words come first.}
-  \item{For each example in test\_data.txt, find the 10 most important class 1 words and substitute them with the 10 most important class 0 words that are not already present. If the example does not contain 10 class 1 words, add extra words to total 20 changes.}
+  \item{For each example in test\_data.txt, find the 10 most important class 1 words and replace them with the 10 most important class 0 words that are not already present. If the example does not contain 10 class 1 words, add extra words to total 20 changes.}
 \end{itemize}
 This worked well when tested against our own classifier. We realised that the target classifier would be trained against more examples, and would differ from ours in unknown ways, and would therefore assign different importances to each word. However, we hoped that it would be similar enough for our algorithm to be fairly effective.\\
 \\

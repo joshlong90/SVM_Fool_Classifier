@@ -198,7 +198,7 @@ Our first idea to fool the target classifier was simply to remove the 10 words i
   \item{Train a classifier on the examples in class-0.txt and class-1.txt.}
   \item{Extract the weights that the classifier assigned to each word.}
   \item{Create a list of all the class 0 words, sorted in decreasing order of the absolute value of their weight. i.e. the words that most strongly suggest class 0 are at the start of the list.}
-  \item{Create a dictionary mapping each class 1 word to an integer 'importance' rating. A low rating means high importance, so that when we sort by rating, the most important words come first.}
+  \item{Create a dictionary mapping each class 1 word to an integer rank. A low rank means high importance, so that when we sort by rank, the most important words come first.}
   \item{For each example in test\_data.txt, find the 10 most important class 1 words and remove them, then add the 10 most important class 0 words that are not already present. If the example does not contain 10 class 1 words, add extra words to total 20 changes.}
 \end{itemize}
 This worked well when tested against our own classifier. We realised that the target classifier would be trained against more examples, and would differ from ours in unknown ways, and would therefore assign different importances to each word. However, we hoped that it would be similar enough for our algorithm to be fairly effective.\\

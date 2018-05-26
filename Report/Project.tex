@@ -199,7 +199,7 @@ Our first idea to fool the target classifier was simply to remove the 10 words i
   \item{Extract the weights that the classifier assigned to each word.}
   \item{Create a list of all the class 0 words, sorted in decreasing order of the absolute value of their weight. i.e. the words that most strongly suggest class 0 are at the start of the list.}
   \item{Create a dictionary mapping each class 1 word to an integer 'importance' rating. A low rating means high importance, so that when we sort by rating, the most important words come first.}
-  \item{For each example in test\_data.txt, find the 10 most important class 1 words and remove them, then add the 10 most important class 0 words that are not already present.}
+  \item{For each example in test\_data.txt, find the 10 most important class 1 words and remove them, then add the 10 most important class 0 words that are not already present. If the example does not contain 10 class 1 words, add extra words to total 20 changes.}
 \end{itemize}
 This worked well when tested against our own classifier. We realised that the target classifier would be trained against more examples, and would differ from ours in unknown ways, and would therefore assign different importances to each word. However, we hoped that it would be similar enough for our algorithm to be fairly effective.\\
 \\
@@ -211,9 +211,8 @@ We next decided to sort the class 1 and class 0 words within one list and sorted
  - This approach looked promising against our own classifier, but when we submitted we only achieved 18\% accuracy.
 
 \textbf{\large Submission 3} \\
- - Our next attempt went back to swapping words, but used a TfidfVectorizer with binary=True rather than tfidf.
- - Our accuracy was 33.5\%, worse than our first attempt, so we decided that this was a dead end.
-
+Our third attempt returned to the word swapping algorithm of our first attempt, but this time we used a TfidfVectorizer with binary=True rather than tf-idf. The resulting accuracy was 33.5\%, worse than our first attempt, so we decided that this was a dead end.\\
+\\
 \textbf{\large Submission 4} \\
 We made a number of changes for our fourth attempt. We noticed that the CountVectorizer removed punctuation, e.g. (mr. changed to mr). Since the word "mr" had a high weight in favour of class 1, we thought it might be better to leave punctuation in place. We read the documentation on CountVectorizer, and learned that you can use a custom tokenizer to change its default behaviour. We modified our code to use a custom tokenizer which only splits on spaces, and does not remove punctuation. Interestingly, this showed that parentheses were one of the most important features for distinguishing the classes. We verified that parentheses are about twice as frequent in class 0 as class 1. This change also improved the accuracy of our own classifier to around 70\%. \\
 \\
@@ -224,7 +223,8 @@ We next decided to verify whether or not tokens such as "(", ")", and "," really
 \\
 \textbf{\large Submission 6} \\
 Our best results so far had come from only removing words, but we wanted to see if we could find an optimal ratio of removals to additions. We modified our code to remove only 18 words and add 2. This caused our accuracy to drop slightly to 91\%, showing that only removing words is the most effective strategy. \\
-
+\\
+At this point we could not think of any plausible ideas to improve our results. For our final assignment submission, we reverted to using the algorithm from submission 4.
 
 %----------------------------------------------------------------------------------------
 

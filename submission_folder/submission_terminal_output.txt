@@ -1,3 +1,11 @@
+Joshuas-MacBook-Pro:submission_folder joshualong$ sum report.pdf submission.py
+7656 72 report.pdf
+54838 6 submission.py
+
+weill % sum report.pdf submission.py 
+07656    72 report.pdf
+54838     6 submission.py
+
 weill % give cs9318 proj1 submission.py report.pdf
 Session: 18s1
 Student declaration
@@ -13,9 +21,9 @@ Type "yes" to confirm that you agree to the declaration above: yes
 yes
 
 
-Current day and time:	Sat May 26 17:40:16 2018
+Current day and time:	Sat May 26 18:04:18 2018
 Assignment deadline:	Sun May 27 23:59:59 2018
-A submission now would be 1 day and 6 hours early
+A submission now would be 1 day and 5 hours early
 
 Type "yes" to continue with the submission: yes
 yes
@@ -28,8 +36,8 @@ Files found: submission.py report.pdf
 ------------------------------
 
 
-Submission datestamp:	Sat May 26 17:40:18 2018
+Submission datestamp:	Sat May 26 18:04:21 2018
 Assignment deadline:	Sun May 27 23:59:59 2018
-This submission is 1 day and 6 hours early
+This submission is 1 day and 5 hours early
 Submission accepted. Awesome!
 weill % 
